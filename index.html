@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pembayaran Kaos</title>
+    <link rel="icon" href="images/shopping.png" type="image/png" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <header><i class="fas fa-tshirt"></i> Sistem PembayaranKaos</header>
+    <main>
+      <form id="formPembeli">
+        <label><i class="fas fa-user"></i> Nama</label>
+        <input type="text" id="nama" required />
+
+        <label><i class="fas fa-tags"></i> Kategori</label>
+        <select id="kategori" required>
+          <option value="">Pilih Kategori</option>
+          <option value="Dewasa">Dewasa - 175.000</option>
+          <option value="Remaja">Remaja - 75.000</option>
+          <option value="Anak">Anak - 50.000</option>
+        </select>
+
+        <label><i class="fas fa-ruler-combined"></i> Ukuran</label>
+        <select id="ukuran" required>
+          <option value="">Pilih Ukuran</option>
+          <option>S</option>
+          <option>M</option>
+          <option>L</option>
+          <option>XL</option>
+          <option>XXL</option>
+        </select>
+
+        <button type="submit">
+          <i class="fas fa-plus-circle"></i> Tambah Pesanan
+        </button>
+      </form>
+
+      <div class="filter-wrapper">
+        <input
+          type="text"
+          id="filterId"
+          placeholder="🔍 Cari ID (KC...)"
+          oninput="renderTabel()"
+        />
+
+        <select id="filterStatus" onchange="renderTabel()">
+          <option value="">📋 Semua Status</option>
+          <option value="lunas">✅ Lunas</option>
+          <option value="belum">⌛ Belum Lunas</option>
+        </select>
+      </div>
+
+      <div class="filters">
+        <label>
+          <i class="fas fa-filter"></i> Kategori:
+          <select id="filterKategori">
+            <option value="">Semua</option>
+            <option value="Dewasa">Dewasa</option>
+            <option value="Remaja">Remaja</option>
+            <option value="Anak">Anak</option>
+          </select>
+        </label>
+
+        <label>
+          <i class="fas fa-tshirt"></i> Ukuran:
+          <select id="filterUkuran">
+            <option value="">Semua</option>
+            <option value="S">S</option>
+            <option value="M">M</option>
+            <option value="L">L</option>
+            <option value="XL">XL</option>
+            <option value="XXL">XXL</option>
+          </select>
+        </label>
+
+        <button onclick="exportToExcel()">
+          <i class="fas fa-file-excel"></i> Export ke Excel
+        </button>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nama</th>
+              <th>Kategori</th>
+              <th>Ukuran</th>
+              <th>Harga</th>
+              <th>Dibayar</th>
+              <th>Sisa</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="dataTabel"></tbody>
+        </table>
+      </div>
+
+      <div id="statistik"></div>
+
+      <button class="reset-btn" onclick="resetData()">
+        <i class="fas fa-trash"></i> Reset Semua Data
+      </button>
+
+      <div class="form-cicilan">
+        <h3><i class="fas fa-money-check-alt"></i> Form Cicilan Mingguan</h3>
+
+        <label><i class="fas fa-user-check"></i> Nama Pembeli</label>
+        <select id="pembeliIndex">
+          <option value="">Pilih Pembeli</option>
+        </select>
+
+        <label><i class="fas fa-coins"></i> Jumlah Cicilan</label>
+        <input type="number" id="jumlahCicilan" placeholder="Contoh: 20000" />
+
+        <label><i class="fas fa-calendar-alt"></i> Tanggal Cicilan</label>
+        <input type="date" id="tanggalCicilan" />
+
+        <button type="button" onclick="tambahCicilanManual()">
+          <i class="fas fa-plus"></i> Tambah Cicilan
+        </button>
+
+        <button type="button" class="toggle-log" onclick="toggleSemuaLog()">
+          <i class="fas fa-clock-rotate-left"></i> Riwayat Cicilan
+        </button>
+
+        <div id="cicilanLogGlobal" class="cicilan-log-global"></div>
+      </div>
+    </main>
+
+    <script src="js/script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  </body>
+</html>
