@@ -43,6 +43,26 @@ main {
   }
 }
 
+#toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #1565c0;
+  font-weight: 700;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 9999;
+  font-family: Arial, sans-serif;
+}
+#toast.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 label {
   font-weight: 600;
   margin-bottom: 6px;

@@ -1,4 +1,14 @@
-  const hargaKategori = {
+   function showToast(message, duration = 3000) {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+
+        setTimeout(() => {
+          toast.classList.remove("show");
+        }, duration);
+      }
+
+      const hargaKategori = {
         Dewasa: 175000,
         Remaja: 75000,
         Anak: 50000,
@@ -79,18 +89,31 @@
       function renderCicilanLogGlobal() {
         const container = document.getElementById("cicilanLogGlobal");
         container.innerHTML = "";
+        const mingguStat = {};
+
         pembeliList.forEach((p, i) => {
           const id = `KC${String(i + 1).padStart(3, "0")}`;
           if (p.cicilan.length > 0) {
             container.innerHTML += `<strong>${id} - ${p.nama}</strong><br/>`;
             p.cicilan.forEach((c, idx) => {
-              container.innerHTML += `<div class="log-entry">Minggu ${
-                idx + 1
-              }: Rp ${c.jumlah.toLocaleString()} (${c.tanggal})</div>`;
+              container.innerHTML += `
+          <div class="log-entry">
+            Minggu ${idx + 1}: Rp ${c.jumlah.toLocaleString()} (${c.tanggal})
+            <button onclick="editCicilan(${i}, ${idx})">Edit</button>
+          </div>`;
+              mingguStat[idx + 1] = (mingguStat[idx + 1] || 0) + c.jumlah;
             });
             container.innerHTML += "<br/>";
           }
         });
+
+
+        if (Object.keys(mingguStat).length > 0) {
+          container.innerHTML += `<hr><strong>Total Cicilan Tiap Minggu:</strong><br/>`;
+          Object.entries(mingguStat).forEach(([minggu, total]) => {
+            container.innerHTML += `<div>Minggu ${minggu}: Rp ${total.toLocaleString()}</div>`;
+          });
+        }
       }
 
       function toggleSemuaLog() {
@@ -121,6 +144,8 @@
           simpanData();
           renderTabel();
           this.reset();
+
+          showToast("Berhasil menambahkan data pembeli!");
         });
 
       function tambahCicilanManual() {
@@ -129,7 +154,7 @@
         const tanggal = document.getElementById("tanggalCicilan").value;
 
         if (index === "" || isNaN(jumlah) || !tanggal) {
-          alert("Lengkapi data cicilan!");
+          showToast("Lengkapi data cicilan!", 4000);
           return;
         }
 
@@ -137,7 +162,7 @@
         const sisa = pembeli.harga - pembeli.cicilanTotal;
 
         if (jumlah > sisa) {
-          alert("Jumlah cicilan melebihi sisa yang harus dibayar.");
+          showToast("Jumlah cicilan melebihi sisa yang harus dibayar.", 4000);
           return;
         }
 
@@ -151,6 +176,8 @@
         document.getElementById("tanggalCicilan").value = new Date()
           .toISOString()
           .split("T")[0];
+
+        showToast("Berhasil menambahkan cicilan!");
       }
 
       function hapusPembeli(index) {
@@ -158,6 +185,7 @@
           pembeliList.splice(index, 1);
           simpanData();
           renderTabel();
+          showToast("Data pembeli berhasil dihapus.");
         }
       }
 
@@ -166,6 +194,7 @@
           localStorage.removeItem("pembeliList");
           pembeliList = [];
           renderTabel();
+          showToast("Semua data berhasil direset.");
         }
       }
 
@@ -192,6 +221,8 @@
 
           simpanData();
           renderTabel();
+
+          showToast("Data pembeli berhasil diperbarui.");
         } else {
           alert("Input tidak valid. Edit dibatalkan.");
         }
@@ -204,31 +235,83 @@
         .getElementById("filterUkuran")
         .addEventListener("change", renderTabel);
 
+      function editCicilan(indexPembeli, indexCicilan) {
+        const cicilan = pembeliList[indexPembeli].cicilan[indexCicilan];
+
+        const nilaiBaru = prompt(
+          `Ubah jumlah cicilan minggu ${
+            indexCicilan + 1
+          } (saat ini Rp ${cicilan.jumlah.toLocaleString()}):`,
+          cicilan.jumlah
+        );
+
+        const jumlahBaru = parseInt(nilaiBaru);
+
+        if (!isNaN(jumlahBaru) && jumlahBaru >= 0) {
+          const pembeli = pembeliList[indexPembeli];
+          pembeli.cicilan[indexCicilan].jumlah = jumlahBaru;
+          pembeli.cicilanTotal = pembeli.cicilan.reduce(
+            (sum, c) => sum + c.jumlah,
+            0
+          );
+
+          simpanData();
+          renderTabel();
+
+          showToast("Jumlah cicilan berhasil diperbarui.");
+        } else {
+          alert("Nominal tidak valid.");
+        }
+      }
+
       function exportToExcel() {
         const headers = [
+          "ID",
           "Nama",
           "Kategori",
           "Ukuran",
           "Harga",
           "Cicilan Total",
+          "Sisa",
+          "Status",
         ];
-        const data = pembeliList.map((p) => [
-          p.nama,
-          p.kategori,
-          p.ukuran,
-          p.harga,
-          p.cicilanTotal,
-          p.tanggal || "-",
-        ]);
 
-        const worksheet = XLSX.utils.aoa_to_sheet([headers, ...data]);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Data Cicilan");
-        XLSX.writeFile(workbook, "Data_Cicilan.xlsx");
+        let table = `<table><tr>${headers
+          .map((h) => `<th>${h}</th>`)
+          .join("")}</tr>`;
+
+        pembeliList.forEach((p, i) => {
+          const id = `KC${String(i + 1).padStart(3, "0")}`;
+          const sisa = p.harga - p.cicilanTotal;
+          const status = sisa <= 0 ? "Lunas" : "Belum Lunas";
+
+          table += `<tr>
+      <td>${id}</td>
+      <td>${p.nama}</td>
+      <td>${p.kategori}</td>
+      <td>${p.ukuran}</td>
+      <td>${p.harga}</td>
+      <td>${p.cicilanTotal}</td>
+      <td>${sisa}</td>
+      <td>${status}</td>
+    </tr>`;
+        });
+
+        table += `</table>`;
+
+        const blob = new Blob([table], {
+          type: "application/vnd.ms-excel",
+        });
+
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "data_pembayaran_kaos.xls";
+        a.click();
       }
 
       window.onload = () => {
         renderTabel();
-        const today = new Date().toISOString().split("T")[0];
-        document.getElementById("tanggalCicilan").value = today;
+        document.getElementById("tanggalCicilan").value = new Date()
+          .toISOString()
+          .split("T")[0];
       };
